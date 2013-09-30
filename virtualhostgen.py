@@ -30,7 +30,12 @@ def changeSettings(s, arg = ''):
 			documentroot += '/' + arg + '/'
 		else:
 			settingsValue = 'd'
-		
+	elif s == 'D':
+		#change document root
+		if settingsValue:
+			documentroot = '/' + arg + '/'
+		else:
+			settingsValue = 'D'		
 		
 	settings = '\n\n    Options '
 	
