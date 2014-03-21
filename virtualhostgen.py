@@ -1,6 +1,142 @@
 #!/usr/bin/env python
 
 from sys import argv
+m sys import argv
+import os
+
+# Default Variables
+saveto = '/etc/apache2/sites-enabled/'
+logs = '/var/www/vhosts/'
+
+# Used to identify if next argument corresponds to a setting
+settingsValue = False;
+settings = []
+
+# virtualhost document variables
+document = docAppend = docRoot = ''
+
+
+# Start function to create Virtual Host File
+def start():
+
+    for i in argv[1:]:
+        # Check if Setting
+        if i[0] == '-' or i[0] == '+' or settingsValue:
+            changeSettings(i)
+        else:
+            createVirtualHost(i)
+
+
+# Change Settings
+def changeSettings(setting):
+
+    global settings, settingsValue
+
+    if setting in ['-u', '-d', '-D', '-f', '+f', '-i', '+i']:
+
+        settings.append(setting)
+
+        if setting in ['-u', '-d', '-D']:
+            settingsValue = setting
+
+    elif settingsValue:
+        # save value to global var
+        if settingsValue == '-u':
+            global user
+            user = setting
+        elif settingsValue == '-d':
+            global docAppend
+            docAppend = setting
+        elif settingsValue == '-D':
+            global docRoot
+            docRoot = setting
+        # refresh settingsvalue indicator
+        settingsValue = False
+
+
+# Create the VirtualHost Data
+def createVirtualHost(website):
+    
+    global settings, user, logs, document, docAppend, docRoot
+    options = ''
+
+    # create document and log root variables
+    if docRoot != '':
+        document = docRoot
+    elif docAppend != '':
+        document = '/home/%s/websites/%s/%s/' % (user, website, docAppend)
+    else:
+        document = '/home/%s/websites/%s/public' % (user, website)
+
+
+    # check if any options exist and add for host file
+    if(any((True for x in settings if x in ['-i', '+i', '-f', '+f']))):
+        options = '\n    Options '
+
+        # Indexes
+        if '+i' in settings:
+            options += '+Indexes '
+        elif '-i' in settings:
+            options += '-Indexes '
+
+        # Follow SymLinks
+        if '+f' in settings:
+            options += '+FollowSymLinks '
+        elif '-f' in settings:
+            options += '-FollowSymLinks '
+
+        options += '\n'
+
+    vhost = """<VirtualHost *:80>
+    ServerName %s
+    ServerAlias www.%s
+
+    DocumentRoot %s
+    %s
+    ErrorLog \"%s/error.log\"
+    CustomLog \"%s/access.log\" common
+</VirtualHost>""" % (website, website, document, options, logs+website, logs+website)
+
+    saveFile(vhost, website)
+
+
+# Write the file, and ensure directories exist
+def saveFile(vhost, website):
+
+    global saveto, user, document, logs
+
+    # Make document and log directories
+    if not os.path.isdir(document):
+        os.makedirs(document)
+        print '%s/ document directory created' % (document)
+        # set user as owner
+        own = 'sudo chown -R %s:%s %s' % (user, user, document)
+        os.system(own) 
+
+    if not os.path.isdir(logs+website):
+        os.makedirs(logs+website)
+        print '%s/ log directory created' % (logs+website)
+
+    # save virtualhost file
+    os.chdir(saveto)
+    target = website + '.conf'
+    target = open(target, 'w')
+    target.truncate()
+    target.write(vhost)
+    target.close()
+    print 'Successfully created the Virtual Host File '+website+'.conf in the location '+saveto
+
+    #reload apache
+    print 'Reloading Apache'
+    os.system('sudo service apache2 reload')
+
+if __name__ == '__main__':
+    # Ensure at least three arguments have been set
+    if len(argv) > 3:
+        start()
+    else:
+        print 'Missing Argument: Username and Website (-u username website.com)'
+
 import os
 
 # Initial global variables

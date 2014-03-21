@@ -12,10 +12,8 @@ Simply copy the script into your operating system, and edit a few details in the
 
 These variables are located at the top of the script
 
-1. The `siteroot` variable contains the root of for your website files
-2. The `errorlog` variable contains the root for error logs
-3. The `accesslog` variable contains the root for access logs
-4. The `saveto` variable contains to the root for virtualhost files to go
+1. The `saveto` variable contains the file root of where to save virtualhost files
+2. The `logs` variable contains the root for all access/error logs
 
 ## Usage
 
@@ -23,9 +21,12 @@ The script must be invoked with the last argument being a servername, such as wi
 
 Current support flags are:
 
-- `-d` is followed by another argument (such as `laravel/public`) and adds to the document route
-- `-D` is similar to -d, but instead of adding to the document route, it overides the default value
-- `-F` turns the FollowSymLinks option on
-- `-I` turns the Index option on
+- `-u` this flag is required, and must proceed a default user to own
+- `-d` Appends the default value of document root (/home/%user%/appended/root)
+- `-D` Overides the default of document root (/overwrited/root/)
+- `-f` turns off FollowSymLinks, and `+f` turns them on
+- `-i` turns off Indexes, and `+i` turns them on
 
-The flags are limited to suit my current set up. This will be updated to include options to turn off certain options that may have different defaults on different systems.
+Example base usage:
+`virtualhostgen.py -u 'joshwalwyn' example.com`
+`virtualhostgen.py -u 'joshwalwyn' +i -f -D /var/www/mainsite example.com`
