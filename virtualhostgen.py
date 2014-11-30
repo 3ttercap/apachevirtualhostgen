@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from sys import argv
-m sys import argv
+from sys import argv
 import os
 
 # Default Variables
